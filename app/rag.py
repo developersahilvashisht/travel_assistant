@@ -77,7 +77,7 @@ class HybridRetriever:
         return [doc_map[k] for k in ranked_keys[: self.k]]
 
 
-def get_retriever(k: int = 4):
+def get_retriever(k: int = 5):
     """Builds (once) and returns the hybrid BM25 + FAISS retriever."""
     global _retriever
     if _retriever is not None:

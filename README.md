@@ -45,31 +45,45 @@ A context-aware travel assistant that combines a document-based knowledge base
 
 ## Knowledge Base Sources
 
-Content in `data/knowledge_base/` is **original writing**, researched from and
-attributed to public Singapore travel resources (not copy-pasted, to respect
-each source's copyright/reuse terms — see brief section 6). Each file's YAML
-front-matter records the source title and URL used as metadata, satisfying the
-"display the source title or link" RAG requirement.
+The knowledge base is built **directly from the actual source PDFs** named in
+the assignment brief — downloaded (browser Save-as-PDF) and ingested with
+their real text, not paraphrased or rewritten. This is the literal reading of
+"load travel content from public documents... for ingestion."
 
-| File | Covers | Primary source basis |
+| Raw file (`data/knowledge_base/raw/`) | Source | URL (also stored as chunk metadata for citation) |
 |---|---|---|
-| `01_attractions_neighbourhoods.md` | Attractions & districts | Visit Singapore — Things to Do / neighbourhood guides |
-| `02_transportation_practical.md` | Transport, climate, currency, etiquette | Wikivoyage Singapore / Visit Singapore — Essential Travel Info |
-| `03_food_experiences.md` | Hawker food, dishes, food districts | Wikivoyage Singapore — Eat section |
-| `04_sample_itineraries.md` | 3-day itineraries (classic, family, cultural) | Visit Singapore — Sample Itineraries |
-| `05_indoor_outdoor_activities.md` | Indoor/outdoor activity classification | Visit Singapore — Things to Do (categorised) |
+| `wikivoyage_singapore.pdf` | Wikivoyage Singapore Travel Guide (68 pages — the full article: Districts, Understand, Get in/around, See, Do, Eat, Drink, Sleep, Stay safe, etc.) | https://en.wikivoyage.org/wiki/Singapore |
+| `visitsg_essential_info.pdf` | Visit Singapore — Essential Travel Information | https://www.visitsingapore.com/travel-tips/essential-travel-information/ |
+| `visitsg_itineraries.pdf` | Visit Singapore — Itineraries | https://www.visitsingapore.com/travel-tips/travelling-to-singapore/itineraries/ |
+| `visitsg_things_to_do.pdf` | Visit Singapore — Things to Do | https://www.visitsingapore.com/things-to-do/top-things-to-do/ |
 
-That's 4 distinct public resources referenced, meeting the "at least three"
-requirement.
+4 distinct public resources, meeting the "at least three" requirement, and
+matching the exact sources the brief names as recommended.
+
+**Licensing note**: Wikivoyage content is Creative Commons (CC BY-SA) — fully
+reusable with attribution, which the source metadata provides. Visit
+Singapore's site is the official tourism board's copyrighted content;
+downloading it for this private coursework ingestion pipeline is standard
+low-risk educational use, but the brief itself cautions ("review and follow
+each source's reuse terms when redistributing") against redistributing large
+verbatim extracts of it beyond that use.
+
+**Superseded approach**: `data/knowledge_base/_deprecated_original_writing/`
+holds an earlier version of the knowledge base (original writing researched
+from these same sources, before the raw PDFs were available). It is no longer
+read by `app/ingest.py` — kept only for reference. See its own README.md.
 
 ## RAG Workflow (assignment requirements 1–7)
 
-1. **Load**: `app/ingest.py::load_documents()` reads all `.md` files in
-   `data/knowledge_base/`, keeping front-matter (title, source, URL) as
-   metadata.
-2. **Chunk**: `RecursiveCharacterTextSplitter`, splitting on markdown headers
-   first (`\n## `, `\n### `) so each chunk is a coherent unit (e.g. one
-   neighbourhood), 800 chars with 100 overlap.
+1. **Load**: `app/ingest.py::load_documents()` runs `pdftotext` on each PDF in
+   `data/knowledge_base/raw/`, then strips web-page boilerplate (nav menus,
+   breadcrumbs, cookie/footer text, browser-print timestamps and page
+   numbers — see `_BOILERPLATE_PATTERNS`) so chunks contain travel content,
+   not site chrome. Each PDF's source title and URL (`SOURCE_REGISTRY`) are
+   attached as document metadata for citation.
+2. **Chunk**: `RecursiveCharacterTextSplitter`, splitting on markdown-style
+   headers first (`\n## `, `\n### `) so each chunk is a coherent unit, 800
+   chars with 100 overlap.
 3. **Embed**: `app/embeddings.py::get_embeddings()` — provider-agnostic (see
    below).
 4. **Store**: FAISS (`vectorstore/`), saved to disk after `python3 -m app.ingest`.
@@ -213,9 +227,17 @@ See `sample_qna.md` for a template to record your actual run's transcript.
 ## Known Limitations
 
 - The default local embedding backend (TF-IDF+SVD) is semantically weaker
-  than a transformer model — occasional retrieval misses are expected on a
-  5-document corpus. Switch `EMBEDDING_PROVIDER` once you have more
-  disk/API budget (see above).
+  than a transformer model — retrieval is noticeably better than a keyword
+  search but still occasionally misses the ideal chunk within the top-k
+  (worse on abstract/paraphrased queries than on queries sharing literal
+  vocabulary with the source text). Switch `EMBEDDING_PROVIDER` to
+  `huggingface` once you have more disk/API budget — same interface, no
+  code changes elsewhere.
+- The Visit Singapore itinerary/things-to-do pages use carousel/card UI
+  elements; a few cards' text is truncated in the browser-printed PDF
+  itself (off-screen at print time) — e.g. "Singapore Art Mus..." — this is
+  a source-file limitation, not a parsing bug, and only affects a handful
+  of individual card blurbs, not the overall corpus.
 - Weather/currency tools require outbound internet access to
   `api.open-meteo.com` / `api.frankfurter.app` at runtime; they fail
   gracefully (not silently) if that's unavailable.
