@@ -3,6 +3,49 @@
 A context-aware travel assistant that combines a document-based knowledge base
 (RAG) with live external data (MCP tools) to help plan a trip to Singapore.
 
+## Quick Start (Development Mode — for Evaluators)
+
+Everything below in one place, so you can get this running locally without
+piecing steps together from later sections. Requires Python 3.10+.
+
+```bash
+# 1. Clone / extract and enter the project
+cd travel_assistant
+
+# 2. Create and activate a virtual environment
+python3 -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\Activate.ps1
+#   Windows PowerShell blocking the activation script? Run once:
+#   Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Set up your .env (you need your OWN Anthropic or OpenAI API key — none
+#    is included in this submission, by design)
+cp .env.example .env
+#   then edit .env and set ANTHROPIC_API_KEY=... (or switch to OpenAI, see .env.example)
+
+# 5. Build the knowledge base vector store (a pre-built one ships in
+#    vectorstore/, so this step is only needed if you edit the source PDFs)
+python3 -m app.ingest
+
+# 6. Sanity-check RAG + both MCP tools with NO API key required
+python3 test_components.py
+
+# 7. Run the chat assistant
+python3 -m app.cli
+#   Windows: if 'python3' isn't recognized, use 'python' instead
+```
+
+At the `You:` prompt, try: *"What are the must-visit attractions in
+Singapore?"*, *"What's the weather forecast for the next 3 days?"*, or the
+combined scenario in "Example Questions to Try" below. Type `exit` to quit.
+
+**No API key handy?** `test_components.py` (step 6) proves the RAG retrieval
+and both MCP tools work correctly without any LLM key at all — useful to
+confirm the pipeline before spending anything on step 7.
+
 ## Architecture
 
 ```
