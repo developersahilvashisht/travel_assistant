@@ -26,8 +26,8 @@ pip install -r requirements.txt
 cp .env.example .env
 #   then edit .env and set ANTHROPIC_API_KEY=... (or switch to OpenAI, see .env.example)
 
-# 5. Build the knowledge base vector store (a pre-built one ships in
-#    vectorstore/, so this step is only needed if you edit the source PDFs)
+# 5. Build the knowledge base vector store (REQUIRED — no pre-built one
+#    ships in this submission; see note below on why)
 python3 -m app.ingest
 
 # 6. Sanity-check RAG + both MCP tools with NO API key required
@@ -45,6 +45,18 @@ combined scenario in "Example Questions to Try" below. Type `exit` to quit.
 **No API key handy?** `test_components.py` (step 6) proves the RAG retrieval
 and both MCP tools work correctly without any LLM key at all — useful to
 confirm the pipeline before spending anything on step 7.
+
+**Why there's no pre-built vector store in this submission:** the default
+embedding model (`BAAI/bge-small-en-v1.5` via FastEmbed) downloads its model
+weights from `huggingface.co` on first use. The development sandbox used to
+build this project could not reach that domain, so the vector store could
+not be pre-built and verified there — step 5 has NOT been run end-to-end
+against the real embedding model as of this submission. It should work
+normally with standard internet access, since FastEmbed/HuggingFace
+downloads are routine, but flagging this honestly rather than shipping an
+artifact I couldn't actually verify. If step 5 fails for you for any
+network reason, set `EMBEDDING_PROVIDER=local` in `.env` (zero downloads,
+TF-IDF-based, weaker retrieval quality but fully self-contained) and rerun it.
 
 ## Architecture
 
@@ -143,23 +155,30 @@ read by `app/ingest.py` — kept only for reference. See its own README.md.
    URL) alongside retrieved content; the system prompt requires the final
    answer to include a "Sources" section.
 
-### Embeddings — provider-agnostic, zero-key default
+### Embeddings — real transformer model by default, zero API key
 
-Since the project starts without an LLM/embedding API key, `EMBEDDING_PROVIDER`
-defaults to `local`: a TF-IDF + Truncated SVD (LSA) embedding, implemented in
-`app/embeddings.py` using only scikit-learn (no download, no key). It is
-**weaker semantically** than a transformer embedding model — it captures word
-co-occurrence, not deep meaning — which is why the hybrid BM25+vector retriever
-above matters. To upgrade once you have more resources/an API key, set in `.env`:
+`EMBEDDING_PROVIDER` defaults to `fastembed`: `BAAI/bge-small-en-v1.5` (the
+compact English member of the BAAI/BGE family) via FastEmbed, which runs on
+ONNX Runtime rather than PyTorch — free, no API key, and a much lighter
+install than `sentence-transformers`. This directly follows the instructor's
+clarification that an embedding model like BAAI/bge-m3 (or similar) is
+expected, while an LLM is separately mandatory (see Prompt & Context Strategy
+below — this project also wires up a real LLM call, see `app/llm.py`).
 
+For the exact `BAAI/bge-m3` model (larger, multilingual — unnecessary for
+this English-only Singapore corpus, but available if you want it), set:
 ```
-EMBEDDING_PROVIDER=huggingface   # local, high quality, ~100MB download, no key
-# or
-EMBEDDING_PROVIDER=openai        # needs OPENAI_API_KEY
+EMBEDDING_PROVIDER=huggingface
+HF_EMBEDDING_MODEL=BAAI/bge-m3
 ```
+This needs `pip install sentence-transformers` (pulls in PyTorch — a
+noticeably heavier install, which is why it isn't the default here).
 
-No other code changes needed — `app/ingest.py` and `app/rag.py` only ever call
-`get_embeddings()`.
+A `local` (TF-IDF+SVD, zero downloads, fully offline) fallback also remains
+available for environments that can't reach huggingface.co.
+
+No other code changes needed either way — `app/ingest.py` and `app/rag.py`
+only ever call `get_embeddings()`.
 
 ## MCP Tools (assignment requirements 8–14)
 

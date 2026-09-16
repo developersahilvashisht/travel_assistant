@@ -12,5 +12,6 @@ rank-bm25>=0.2
 python-frontmatter>=1.1
 langchain-text-splitters>=1.0
 python-dotenv>=1.0
+fastembed>=0.3
 scikit-learn>=1.4
 numpy>=1.26

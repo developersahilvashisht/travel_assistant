@@ -1,19 +1,19 @@
 """
 Embeddings factory — provider-agnostic on purpose.
 
-Why: the assignment asks for "an appropriate embedding model," but doesn't require
-a specific one, and the user doesn't yet have an API key. Rather than blocking the
-whole RAG pipeline on that, this module defaults to a small LOCAL embedding backend
-(TF-IDF + SVD, via scikit-learn, already a dependency) that needs zero API key and
-zero large downloads. It is swappable via one environment variable.
+Default: EMBEDDING_PROVIDER=fastembed, using BAAI/bge-small-en-v1.5 via
+FastEmbed (ONNX Runtime) -- a real transformer embedding model, free, no
+API key, no PyTorch/CUDA dependency (lightweight to install).
 
-To upgrade later (recommended once you have API access / more disk space):
-    EMBEDDING_PROVIDER=huggingface   -> sentence-transformers (local, high quality)
-    EMBEDDING_PROVIDER=openai        -> OpenAI text-embedding-3-small (needs OPENAI_API_KEY)
-    EMBEDDING_PROVIDER=local (default) -> TF-IDF+SVD, no key needed, weaker semantics
+To switch providers, set EMBEDDING_PROVIDER in .env:
+    fastembed (default)  -> BAAI/BGE family via ONNX, no key, no torch
+    local                 -> TF-IDF+SVD fallback, zero download, weakest quality
+    huggingface           -> sentence-transformers (needs PyTorch/torch install;
+                              use this for the exact BAAI/bge-m3 model)
+    openai                -> OpenAI embedding API (needs OPENAI_API_KEY)
 
-The rest of the app (ingest.py, rag.py) only ever imports `get_embeddings()` from
-here, so swapping providers never requires touching retrieval code.
+The rest of the app (ingest.py, rag.py) only ever imports `get_embeddings()`
+from here, so swapping providers never requires touching retrieval code.
 """
 import os
 import pickle
@@ -86,7 +86,7 @@ def get_embeddings(mode: str = None):
     """Factory: returns a LangChain-compatible Embeddings object based on
     EMBEDDING_PROVIDER env var (or the `mode` argument, which takes priority).
     """
-    provider = (mode or os.environ.get("EMBEDDING_PROVIDER", "local")).lower()
+    provider = (mode or os.environ.get("EMBEDDING_PROVIDER", "fastembed")).lower()
 
     if provider == "local":
         vectorstore_dir = os.environ.get("VECTORSTORE_DIR", "vectorstore")
@@ -94,6 +94,17 @@ def get_embeddings(mode: str = None):
         if os.path.exists(embed_path):
             return LocalTfidfEmbeddings.load(embed_path)
         return LocalTfidfEmbeddings()  # unfitted; ingest.py will fit + save it
+
+    elif provider == "fastembed":
+        # Real transformer embeddings (BAAI/BGE family) via ONNX Runtime --
+        # no PyTorch/CUDA dependency, so it stays lightweight to install.
+        # Default model is the compact English BGE variant; for the exact
+        # BAAI/bge-m3 model (large, multilingual, ~2.2GB) use
+        # EMBEDDING_PROVIDER=huggingface + HF_EMBEDDING_MODEL=BAAI/bge-m3
+        # instead (needs `pip install sentence-transformers`, i.e. PyTorch).
+        from langchain_community.embeddings import FastEmbedEmbeddings
+        model_name = os.environ.get("FASTEMBED_MODEL", "BAAI/bge-small-en-v1.5")
+        return FastEmbedEmbeddings(model_name=model_name)
 
     elif provider == "huggingface":
         from langchain_huggingface import HuggingFaceEmbeddings
