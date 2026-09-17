@@ -21,10 +21,11 @@ source venv/bin/activate        # Windows: venv\Scripts\Activate.ps1
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Set up your .env (you need your OWN Anthropic or OpenAI API key — none
-#    is included in this submission, by design)
+# 4. Set up your .env (you need your OWN LLM API key — none is included in
+#    this submission, by design). Gemini is recommended: free, no card
+#    needed. Get one at https://aistudio.google.com/apikey
 cp .env.example .env
-#   then edit .env and set ANTHROPIC_API_KEY=... (or switch to OpenAI, see .env.example)
+#   then edit .env and set GOOGLE_API_KEY=... (or switch to Anthropic/OpenAI, see .env.example)
 
 # 5. Build the knowledge base vector store (REQUIRED — no pre-built one
 #    ships in this submission; see note below on why)
@@ -92,10 +93,12 @@ TF-IDF-based, weaker retrieval quality but fully self-contained) and rerun it.
 - **MCP integration**: LangChain's native `langchain.mcp.MCPAdapter` (backed by
   FastMCP), connecting to two local MCP servers over stdio.
 - **Vector store**: FAISS.
-- **Embeddings**: provider-agnostic (see "Embeddings" below) — defaults to a
-  zero-API-key local backend so the RAG pipeline works immediately.
-- **LLM**: provider-agnostic (Anthropic Claude or OpenAI), switched via one
-  environment variable.
+- **Embeddings**: provider-agnostic (see "Embeddings" below) — defaults to
+  `BAAI/bge-small-en-v1.5` via FastEmbed, a real transformer embedding model
+  that needs no API key.
+- **LLM**: provider-agnostic (Gemini, Anthropic Claude, or OpenAI), switched
+  via one environment variable — Gemini 2.5 Flash recommended as the free,
+  no-card-required option (`app/llm.py`).
 - **Interface**: command-line chat (`app/cli.py`).
 
 ## Knowledge Base Sources
