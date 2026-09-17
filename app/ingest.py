@@ -3,14 +3,14 @@ RAG Ingestion
 ======================
 
 Loads travel knowledge-base content DIRECTLY from the source PDFs
-(data/knowledge_base/raw/*.pdf), extracts text, cleans web-page boilerplate,
+(data/knowledge_base/raw/*.pdf), extracts text,
 splits into chunks, generates embeddings, and stores them in a FAISS vector
 store for semantic retrieval.
 
 Run:
     python -m app.ingest
 
-Implements RAG requirements 1-4 from the assignment brief, literally:
+Implements RAG requirements:
 1. Load travel content from documents         -> load_documents()
 2. Divide content into meaningful chunks       -> RecursiveCharacterTextSplitter
 3. Generate embeddings for the chunks         -> get_embeddings()
