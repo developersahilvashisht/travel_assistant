@@ -2,23 +2,17 @@
 MCP Weather Server
 ====================
 Exposes a single MCP tool, `get_weather_forecast`, backed by the free
-Open-Meteo API (no API key required). Runs as a standalone MCP server over
-stdio, launched by the agent process (see app/agent.py).
+Open-Meteo API.
 
-Run standalone for testing:
-    python3 mcp_servers/weather_server.py
 """
 import httpx
 from fastmcp import FastMCP
 
 mcp = FastMCP("singapore-weather")
 
-# Singapore's coordinates — this assignment scopes the app to one destination,
-# so we hardcode them rather than adding a geocoding step.
 SINGAPORE_LAT = 1.3521
 SINGAPORE_LON = 103.8198
 
-# WMO weather interpretation codes (standard, used by Open-Meteo) -> plain English
 WEATHER_CODES = {
     0: "clear sky", 1: "mainly clear", 2: "partly cloudy", 3: "overcast",
     45: "fog", 48: "depositing rime fog",
@@ -31,17 +25,8 @@ WEATHER_CODES = {
 
 @mcp.tool()
 async def get_weather_forecast(days: int = 3) -> dict:
-    """Get the current weather and a multi-day forecast for Singapore.
-
-    Args:
-        days: Number of forecast days to return (1-7). Default 3.
-
-    Returns:
-        A dict with 'status' ('ok' or 'error'), and on success a 'forecast'
-        list of {date, min_temp_c, max_temp_c, rain_probability_pct, condition},
-        plus 'source' identifying the data provider.
-        On failure, returns {'status': 'error', 'message': ...} — callers must
-        NOT fabricate weather data when this happens.
+    """
+    Get the current weather and a multi-day forecast for Singapore.
     """
     days = max(1, min(days, 7))
     url = "https://api.open-meteo.com/v1/forecast"
@@ -53,7 +38,7 @@ async def get_weather_forecast(days: int = 3) -> dict:
         "forecast_days": days,
     }
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
             resp = await client.get(url, params=params)
             resp.raise_for_status()
             data = resp.json()

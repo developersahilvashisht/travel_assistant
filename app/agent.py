@@ -1,18 +1,11 @@
 """
 Agent Orchestration
 =====================
-Wires together:
 - The RAG tool (search_travel_knowledge_base) from app/rag.py
 - Two MCP tools (weather, currency) served by mcp_servers/*.py, connected via
-  LangChain's native MCP adapter (langchain.mcp.MCPAdapter, backed by FastMCP)
+  LangChain's native MCP adapter (langchain.mcp.MCPAdapter)
 - The system prompt from app/prompts.py
-- An LLM from app/llm.py (provider-agnostic)
-- A LangGraph in-memory checkpointer, giving the agent multi-turn conversation
-  memory keyed by a thread_id — this satisfies the "multi-turn conversation
-  with retained context" acceptance criterion.
-
-This module exposes an async context manager, `travel_agent()`, so the MCP
-subprocess connections are properly opened/closed around a chat session.
+- An LLM from app/llm.py
 """
 import os
 from contextlib import asynccontextmanager
@@ -31,12 +24,6 @@ MCP_SERVERS_DIR = Path(__file__).resolve().parent.parent / "mcp_servers"
 
 @asynccontextmanager
 async def travel_agent():
-    """Async context manager yielding a ready-to-use LangGraph agent.
-
-    Usage:
-        async with travel_agent() as (agent, config):
-            result = await agent.ainvoke({"messages": [...]}, config=config)
-    """
     weather_path = MCP_SERVERS_DIR / "weather_server.py"
     currency_path = MCP_SERVERS_DIR / "currency_server.py"
 
@@ -60,6 +47,4 @@ async def travel_agent():
 
 
 def new_thread_config(thread_id: str = "default-session"):
-    """LangGraph config dict that ties a conversation to a persistent thread_id,
-    so the checkpointer retains message history across turns for that thread."""
     return {"configurable": {"thread_id": thread_id}}

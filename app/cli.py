@@ -8,14 +8,18 @@ Type your travel questions; type 'exit' or 'quit' to stop, 'reset' to start
 a fresh conversation thread (clears memory).
 
 This CLI prints which tools the agent calls (and with what arguments) before
-showing the final answer, so RAG retrieval and MCP tool use are visible and
-demonstrable — useful both for your own debugging and for the assignment's
-"demonstration showing RAG, MCP, a combined response, and conversational
-context" deliverable.
+showing the final answer, so RAG retrieval and MCP tool use are visible.
 """
 import asyncio
 import sys
 import uuid
+import warnings
+import logging
+
+warnings.filterwarnings("ignore")
+logging.disable(logging.WARNING)
+import os
+os.environ.setdefault("GRPC_VERBOSITY", "ERROR") 
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -44,6 +48,22 @@ def print_tool_call(name: str, args: dict):
     print(f"\n  [tool call] {name}({args})")
 
 
+def extract_text(content) -> str:
+    """Normalize an AIMessage's .content.
+    """
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, dict) and block.get("type") == "text":
+                parts.append(block.get("text", ""))
+        return "\n".join(p for p in parts if p)
+    return str(content)
+
+
 async def run_turn(agent, config, user_input: str):
     result = await agent.ainvoke(
         {"messages": [{"role": "user", "content": user_input}]},
@@ -51,7 +71,6 @@ async def run_turn(agent, config, user_input: str):
     )
     messages = result["messages"]
 
-    # Surface any tool calls that happened during this turn, for transparency
     for msg in messages:
         tool_calls = getattr(msg, "tool_calls", None)
         if tool_calls:
@@ -59,7 +78,7 @@ async def run_turn(agent, config, user_input: str):
                 print_tool_call(tc["name"], tc.get("args", {}))
 
     final_message = messages[-1]
-    return final_message.content
+    return extract_text(final_message.content)
 
 
 async def main():

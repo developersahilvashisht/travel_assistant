@@ -1,16 +1,11 @@
 """
-RAG Retrieval — implements assignment requirements 5-7:
-5. Retrieve relevant chunks for each user question
-6. Generate answers grounded in the retrieved content (done by the agent, see agent.py)
-7. Display the source title / source link used for the answer
+RAG Retrieval
+1. Retrieve relevant chunks for each user question
+2. Generate answers in the retrieved content
+3. Display the source title / source link used for the answer
 
 We use a HYBRID retriever: BM25 (keyword/lexical match) + FAISS (vector/semantic
-match), combined via LangChain's EnsembleRetriever. This is a standard production
-RAG pattern — vector search alone can miss exact-term matches (e.g. a query
-containing the literal word "indoor" should reliably surface chunks explicitly
-about indoor activities), while BM25 alone misses paraphrases and synonyms.
-Combining both gives more robust retrieval than either alone, which matters
-especially with our lightweight local embedding backend (see embeddings.py).
+match), combined via LangChain's EnsembleRetriever.
 """
 import os
 import re
@@ -21,13 +16,6 @@ from langchain_core.tools import tool
 
 
 def _bm25_preprocess(text: str) -> list[str]:
-    """Lowercase + strip punctuation before tokenizing.
-
-    NOTE: langchain_community's default BM25 preprocessing is a bare
-    `text.split()` — no lowercasing, no punctuation stripping. That silently
-    breaks matching (e.g. query "indoor" never matches document token
-    "Indoor," or "(Indoor)"). This custom function fixes that.
-    """
     text = text.lower()
     text = re.sub(r"[^a-z0-9\s]", " ", text)
     return text.split()
@@ -37,20 +25,10 @@ from app.ingest import load_documents, chunk_documents
 
 VECTORSTORE_DIR = os.environ.get("VECTORSTORE_DIR", "vectorstore")
 
-_retriever = None  # module-level cache
+_retriever = None
 
 
 class HybridRetriever:
-    """Combines BM25 (keyword) and FAISS (vector) retrieval via Reciprocal Rank
-    Fusion (RRF) — a simple, well-known way to merge two ranked lists without
-    needing comparable similarity scores between the two methods. Each
-    document's fused score is the sum of 1/(60 + rank) across the lists it
-    appears in; documents found by both methods naturally rank higher.
-
-    Implemented directly (rather than relying on a specific LangChain version's
-    EnsembleRetriever, which moved/changed across recent releases) to keep this
-    resilient to the LangChain API churn currently underway.
-    """
 
     def __init__(self, bm25_retriever, vector_retriever, k: int = 4, rrf_k: int = 60):
         self.bm25_retriever = bm25_retriever
@@ -92,8 +70,6 @@ def get_retriever(k: int = 5):
     vs = FAISS.load_local(VECTORSTORE_DIR, embeddings, allow_dangerous_deserialization=True)
     vector_retriever = vs.as_retriever(search_kwargs={"k": k})
 
-    # BM25 needs the raw chunk documents (not just the FAISS index) to build its
-    # keyword index, so we re-derive the same chunks used at ingest time.
     docs = load_documents()
     chunks = chunk_documents(docs)
     bm25_retriever = BM25Retriever.from_documents(chunks, preprocess_func=_bm25_preprocess)

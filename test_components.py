@@ -1,12 +1,3 @@
-"""
-Component Test Script (no LLM API key required)
-===================================================
-Proves the RAG pipeline and both MCP tools work correctly on their own,
-independent of which LLM provider you've configured. Useful to run first,
-before wiring up an API key, to isolate problems.
-
-Run: python3 test_components.py
-"""
 import asyncio
 
 
