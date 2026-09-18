@@ -5,7 +5,7 @@ A context-aware travel assistant that combines a document-based knowledge base
 
 Github repo : https://github.com/developersahilvashisht/travel_assistant
 
-Demo Video Name : https://nagarro-my.sharepoint.com/:v:/p/sahil01/IQDdVVX_KyYUSr9hwMrrtrrgAeOkLKvYkcIpQvTN7oTXAmE?e=5muEbs
+Demo Video : https://nagarro-my.sharepoint.com/:v:/p/sahil01/IQDdVVX_KyYUSr9hwMrrtrrgAeOkLKvYkcIpQvTN7oTXAmE?e=5muEbs
 
 ```bash
 
