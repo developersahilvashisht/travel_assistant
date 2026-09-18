@@ -7,25 +7,6 @@ Github repo : https://github.com/developersahilvashisht/travel_assistant
 
 Demo Video : https://nagarro-my.sharepoint.com/:v:/p/sahil01/IQDdVVX_KyYUSr9hwMrrtrrgAeOkLKvYkcIpQvTN7oTXAmE?e=5muEbs
 
-```bash
-
-cd travel_assistant
-
-python3 -m venv venv
-
-pip install -r requirements.txt
-
-python3 -m app.ingest
-
-python3 test_components.py
-
-python3 -m app.cli
-```
-
-At the `You:` prompt, try: *"What are the must-visit attractions in
-Singapore?"*, *"What's the weather forecast for the next 3 days?"*, or the
-combined scenario in "Example Questions to Try" below. Type `exit` to quit.
-
 
 ## Architecture
 
@@ -116,8 +97,10 @@ Requires Python 3.10+.
 ```bash
 git clone repo
 cd travel_assistant
-python3 -m venv venv
 pip install -r requirements.txt
+python3 -m app.ingest
+python3 test_components.py
+python3 -m app.cli
 ```
 
 ## Build the Knowledge Base
