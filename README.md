@@ -11,8 +11,6 @@ python3 -m venv venv
 
 pip install -r requirements.txt
 
-cp .env.example .env
-
 python3 -m app.ingest
 
 python3 test_components.py
@@ -53,8 +51,7 @@ combined scenario in "Example Questions to Try" below. Type `exit` to quit.
      └──────────────────┘
 ```
 
-- **Orchestration**: LangChain (`langchain.agents.create_agent`, LangGraph
-  under the hood).
+- **Orchestration**: LangChain (`langchain.agents.create_agent`
 - **MCP integration**: LangChain's native `langchain.mcp.MCPAdapter` (backed by
   FastMCP), connecting to two local MCP servers.
 - **Vector store**: FAISS.
@@ -64,8 +61,7 @@ combined scenario in "Example Questions to Try" below. Type `exit` to quit.
 
 ## Knowledge Base Sources
 
-The knowledge base is built **directly from the actual source PDFs** named in
-the assignment brief — downloaded (browser Save-as-PDF) and ingested with
+The knowledge base is built **directly from the source PDFs** — downloaded (browser Save-as-PDF) and ingested with
 their real text. This is the literal reading of
 "load travel content from public documents... for ingestion."
 
@@ -88,18 +84,17 @@ their real text. This is the literal reading of
 5. **Retrieve**: `app/rag.py::get_retriever()` — a **hybrid** retriever
    combining BM25 (keyword match) and FAISS (vector match).
 6. **Generate answers**: the agent's system prompt (`app/prompts.py`)
-   requires every destination fact to come from a retrieved chunk, and
-   explicitly forbids inventing facts when retrieval is insufficient.
+   requires every destination fact to come from a retrieved chunk.
 7. **Show sources**: the RAG tool returns a `SOURCES:` block (source title +
    URL) alongside retrieved content.
 
-### Embeddings — real transformer model by default, zero API key
+### Embeddings
 
 `EMBEDDING_PROVIDER` defaults to `fastembed`: `BAAI/bge-small-en-v1.5` via FastEmbed, which runs on
 ONNX Runtime.
 
 
-## MCP Tools (assignment requirements 8–14)
+## MCP Tools
 
 Two MCP servers, built with [FastMCP] and bound directly
 into the LangChain agent's tool list (`app/agent.py`):
@@ -115,25 +110,16 @@ into the LangChain agent's tool list (`app/agent.py`):
 Requires Python 3.10+.
 
 ```bash
-git clone <this-repo>
+git clone repo
 cd travel_assistant
 python3 -m venv venv
-source venv/bin/activate     
 pip install -r requirements.txt
-
-cp .env.example .env
 ```
 
 ## Build the Knowledge Base
 
 ```bash
 python3 -m app.ingest
-```
-
-## Test Components
-
-```bash
-python3 test_components.py
 ```
 
 ## Run the Chat Assistant
