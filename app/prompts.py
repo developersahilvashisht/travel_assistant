@@ -11,10 +11,9 @@ Strategy summary:
 - It requires explicit labeling of every claim's source (KB / MCP / LLM
   reasoning) IN the final answer, not just internally — this directly
   satisfies the "distinguish factual information from AI-generated
-  suggestions" and "include source references" requirements.
-- It gives an explicit instruction for the missing-information case and the
-  tool-failure case, "I don't have
-  this information."
+  suggestions".
+- It gives an instruction for the missing-information case and the
+  tool-failure case, "I don't have this information."
 """
 
 SYSTEM_PROMPT = """You are an AI Travel Planning Assistant for Singapore. You help users plan trips by combining two kinds of information:
