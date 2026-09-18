@@ -1,0 +1,39 @@
+
+RAG Question
+-----------------------------------
+What are the must-visit attractions in Singapore? 
+-----------------------------------
+
+RESET
+
+
+MCP: weather Question
+-----------------------------------
+What's the weather forecast for the next 3 days?
+-----------------------------------
+
+
+
+MCP: currency Question
+-----------------------------------
+Convert INR 50000 to SGD.
+-----------------------------------
+
+RESET
+
+Combined RAG + MCP Question
+-----------------------------------
+Plan a three-day trip to Singapore and adjust the activities based on the weather forecast.
+-----------------------------------
+
+
+Follow-up Question
+-----------------------------------
+Convert my budget of 60,000 INR to SGD for that trip.
+-----------------------------------
+
+
+Missing Information
+-----------------------------------
+What's the best nightclub for a 21st birthday party?
+-----------------------------------
