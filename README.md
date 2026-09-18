@@ -3,6 +3,8 @@
 A context-aware travel assistant that combines a document-based knowledge base
 (RAG) with live external data (MCP tools) to help plan a trip to Singapore.
 
+Github repo : https://github.com/developersahilvashisht/travel_assistant
+
 ```bash
 
 cd travel_assistant
