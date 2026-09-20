@@ -61,9 +61,6 @@ class LocalTfidfEmbeddings(Embeddings):
 
 
 def get_embeddings(mode: str = None):
-    """returns a LangChain-compatible Embeddings object based on
-    EMBEDDING_PROVIDER env var.
-    """
     provider = (mode or os.environ.get("EMBEDDING_PROVIDER", "fastembed")).lower()
 
     if provider == "local":
