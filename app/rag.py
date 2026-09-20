@@ -3,9 +3,6 @@ RAG Retrieval
 1. Retrieve relevant chunks for each user question
 2. Generate answers in the retrieved content
 3. Display the source title / source link used for the answer
-
-We use a HYBRID retriever: BM25 (keyword/lexical match) + FAISS (vector/semantic
-match), combined via LangChain's EnsembleRetriever.
 """
 import os
 import re
@@ -56,7 +53,6 @@ class HybridRetriever:
 
 
 def get_retriever(k: int = 5):
-    """Builds (once) and returns the hybrid BM25 + FAISS retriever."""
     global _retriever
     if _retriever is not None:
         return _retriever
@@ -80,7 +76,6 @@ def get_retriever(k: int = 5):
 
 
 def format_sources(docs: list[Document]) -> str:
-    """Dedupe and format a human-readable source list for citation."""
     seen = set()
     lines = []
     for d in docs:
