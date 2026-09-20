@@ -1,12 +1,12 @@
 # Sample Questions and Responses
 
-## 1. Pure RAG — Destination Knowledge — REAL
+## 1. Pure RAG
 
 **Q: What are the must-visit attractions in Singapore?**
 
-```
-  [tool call] search_travel_knowledge_base({'query': 'must visit attractions Singapore'})
-  [tool call] search_travel_knowledge_base({'query': 'iconic attractions Singapore Gardens by the Bay Marina Bay Sands Sentosa'})
+```text
+[tool call] search_travel_knowledge_base({'query': 'must visit attractions Singapore'})
+[tool call] search_travel_knowledge_base({'query': 'iconic attractions Singapore Gardens by the Bay Marina Bay Sands Sentosa'})
 
 Assistant: Here are the top must-visit attractions in Singapore, categorized by area and interest:
 
@@ -36,8 +36,8 @@ Assistant: Here are the top must-visit attractions in Singapore, categorized by 
 * **Orchard Road:** Singapore's premier shopping belt, lined with miles of air-conditioned shopping malls and retail centers.
 
 ### Sources
-* **Visit Singapore - Things to Do:** https://www.visitsingapore.com/things-to-do/top-things-to-do/
-* **Wikivoyage Singapore Travel Guide:** https://en.wikivoyage.org/wiki/Singapore
+* **Visit Singapore - Things to Do:** [https://www.visitsingapore.com/things-to-do/top-things-to-do/](https://www.visitsingapore.com/things-to-do/top-things-to-do/)
+* **Wikivoyage Singapore Travel Guide:** [https://en.wikivoyage.org/wiki/Singapore](https://en.wikivoyage.org/wiki/Singapore)
 * **Recommendation:** Grouping these attractions by neighbourhood (e.g., Marina Bay in one day, Sentosa in another) is recommended to minimize travel time between sights.
 ```
 
@@ -48,28 +48,30 @@ clearly labeled "Recommendation" rather than presented as a retrieved fact.
 
 ---
 
-## 2. Pure MCP — Currency — REAL (includes a real bug found and fixed)
+## 2. Pure MCP — Currency
 
 **Q: Convert INR 50000 to SGD**
- [tool call] convert_currency({'from_currency': 'INR', 'to_currency': 'SGD', 'amount': 50000})
+
+```text
+[tool call] convert_currency({'from_currency': 'INR', 'to_currency': 'SGD', 'amount': 50000})
 
 Assistant: **INR 50,000** is approximately **SGD 666.71** (at an exchange rate of 1 INR = 0.0133 SGD).
-
----
-
-### Sources
-* Live data: convert_currency (Frankfurter API)
 ```
 
+### Sources
+
+* Live data: `convert_currency` (Frankfurter API)
+
 **What this confirms:** exactly one tool call a real live exchange rate.
+
 ---
 
-## 3. Pure MCP — Weather — REAL
+## 3. Pure MCP — Weather
 
 **Q: What's the weather forecast for the next 3 days?**
 
-```
-  [tool call] get_weather_forecast({'days': 3})
+```text
+[tool call] get_weather_forecast({'days': 3})
 
 Assistant: Here is the weather forecast for Singapore for the next 3 days:
 
@@ -107,10 +109,10 @@ mixed into the factual forecast.
 
 **Q: Plan a three-day trip to Singapore and adjust the activities based on the weather forecast.**
 
-```
-  [tool call] get_weather_forecast({'days': 3})
-  [tool call] search_travel_knowledge_base({'query': '3 day itinerary attractions indoor outdoor activities Singapore'})
-  [tool call] search_travel_knowledge_base({'query': 'Gardens by the Bay Flower Dome Cloud Forest Jewel Changi museums indoor activities Singapore'})
+```text
+[tool call] get_weather_forecast({'days': 3})
+[tool call] search_travel_knowledge_base({'query': '3 day itinerary attractions indoor outdoor activities Singapore'})
+[tool call] search_travel_knowledge_base({'query': 'Gardens by the Bay Flower Dome Cloud Forest Jewel Changi museums indoor activities Singapore'})
 
 Assistant: Here is a tailored 3-Day Singapore itinerary that incorporates live weather forecasts and adjusts activities to ensure a smooth trip.
 
@@ -137,9 +139,9 @@ Assistant: Here is a tailored 3-Day Singapore itinerary that incorporates live w
 
 ### Sources
 * **Destination Knowledge Base:**
-  * Visit Singapore - Itineraries (https://www.visitsingapore.com/travel-tips/travelling-to-singapore/itineraries/)
-  * Visit Singapore - Things to Do (https://www.visitsingapore.com/things-to-do/top-things-to-do/)
-  * Wikivoyage Singapore Travel Guide (https://en.wikivoyage.org/wiki/Singapore)
+  * Visit Singapore - Itineraries ([https://www.visitsingapore.com/travel-tips/travelling-to-singapore/itineraries/](https://www.visitsingapore.com/travel-tips/travelling-to-singapore/itineraries/))
+  * Visit Singapore - Things to Do ([https://www.visitsingapore.com/things-to-do/top-things-to-do/](https://www.visitsingapore.com/things-to-do/top-things-to-do/))
+  * Wikivoyage Singapore Travel Guide ([https://en.wikivoyage.org/wiki/Singapore](https://en.wikivoyage.org/wiki/Singapore))
 * **Live Weather Data:** `get_weather_forecast` (Open-Meteo API)
 * **Recommendation:** Swapping outdoor nature walks for climate-controlled conservatories and indoor hubs (Jewel Changi, Exploria, AltitudeX) to adapt to high daily rain probabilities (84%-90%).
 ```
@@ -157,14 +159,14 @@ labeled recommendation.
 
 **Convert my budget of 60,000 INR to SGD for that trip.**
 
-```
- [tool call] search_travel_knowledge_base({'query': '3 day itinerary attractions indoor outdoor activities'})
+```text
+[tool call] search_travel_knowledge_base({'query': '3 day itinerary attractions indoor outdoor activities'})
 
-  [tool call] get_weather_forecast({'days': 3})
+[tool call] get_weather_forecast({'days': 3})
 
-  [tool call] search_travel_knowledge_base({'query': 'Gardens by the Bay Marina Bay Sands museums indoor outdoor attractions Singapore'})
+[tool call] search_travel_knowledge_base({'query': 'Gardens by the Bay Marina Bay Sands museums indoor outdoor attractions Singapore'})
 
-  [tool call] convert_currency({'from_currency': 'INR', 'to_currency': 'SGD', 'amount': 60000})
+[tool call] convert_currency({'from_currency': 'INR', 'to_currency': 'SGD', 'amount': 60000})
 
 Assistant: **60,000 INR** is approximately **800.05 SGD** (at an exchange rate of 1 INR = 0.0133 SGD).
 
@@ -174,11 +176,8 @@ This budget of ~800 SGD for a 3-day trip provides about 266 SGD per day, which c
 * **Live data: `convert_currency` (Frankfurter API)**
 ```
 
-**What this confirms — two findings, one good and one that led to a fix:**
+1. **Context retention:** The model correctly understood "that trip" referred to the Turn 1 itinerary, and correctly converted the right amount without the user re-entering trip details.
 
-1. **Context retention:.** The model correctly understood
-   "that trip" referred to the Turn 1 itinerary, and correctly converted the
-   right amount without the user re-stating trip details.
 ---
 
 ## 6. Missing-Information Handling
@@ -186,4 +185,3 @@ This budget of ~800 SGD for a 3-day trip provides about 266 SGD per day, which c
 **Q: What's the best shop for hair cut?**
 
 I do not have any source to provide this information.
----
