@@ -49,8 +49,6 @@ def print_tool_call(name: str, args: dict):
 
 
 def extract_text(content) -> str:
-    """Normalize an AIMessage's .content.
-    """
     if isinstance(content, str):
         return content
     if isinstance(content, list):
