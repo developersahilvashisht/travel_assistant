@@ -97,9 +97,10 @@ Requires Python 3.10+.
 ```bash
 git clone repo
 cd travel_assistant
+python -m venv venv
+Add Gemini API key in .env file if needed
 pip install -r requirements.txt
 python3 -m app.ingest
-python3 test_components.py
 python3 -m app.cli
 ```
 
